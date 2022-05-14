@@ -12,7 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tugas 1',
+      title: 'Tugas 2',
+      theme: ThemeData.dark(),
       home: RandomWords(),
     );
   }
@@ -28,14 +29,16 @@ class _RandomWordsState extends State<RandomWords> {
   final List _suggestions = [];
   final TextStyle _biggerFont =
       TextStyle(fontStyle: FontStyle.italic, fontSize: 20);
+  final _saved = Set();
 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Center(
-            child: Text('Pasangan Kata Acak'),
-          ),
-        ),
+        title: Text('Pasangan Kata Acak'),
+        actions: [
+          IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+        ],
+      ),
       body: _buildSuggestion(),
     );
   }
@@ -56,11 +59,59 @@ class _RandomWordsState extends State<RandomWords> {
   }
 
   Widget _buildRow(WordPair pair) {
+    final alreadySaved = _saved.contains(pair);
     return ListTile(
-      title: Text(
-        pair.asSnakeCase,
-        style: _biggerFont,
-      ),
+        title: Text(
+          pair.asSnakeCase,
+          style: _biggerFont,
+        ),
+        trailing: Icon(
+          alreadySaved ? Icons.favorite : Icons.favorite_border,
+          color: alreadySaved ? Colors.green : Colors.green,
+        ),
+        onTap: () {
+          setState(() {
+            if (alreadySaved) {
+              _saved.remove(pair);
+            } else {
+              _saved.add(pair);
+            }
+          });
+        });
+  }
+
+   void _pushSaved() {
+    Navigator.of(context).push(
+      // Add lines from here...
+      MaterialPageRoute<void>(
+        builder: (context) {
+          final tiles = _saved.map(
+            (pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase,
+                  style: _biggerFont,
+                ),
+              );
+            },
+          );
+          final divided = tiles.isNotEmpty
+              ? ListTile.divideTiles(
+                  context: context,
+                  tiles: tiles,
+                ).toList()
+              : <Widget>[];
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Kata Disukai'),
+            ),
+            body: ListView(children: divided),
+          );
+        },
+      ), // ...to here.
     );
   }
+
 }
+
